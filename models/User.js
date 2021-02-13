@@ -1,4 +1,6 @@
 const mongoose = require("mongoose"); // 모듈 가져오기
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 // 스키마 생성
 const userSchema = mongoose.Schema({
@@ -33,6 +35,23 @@ const userSchema = mongoose.Schema({
     type: Number,
   },
 });
+
+userSchema.pre("save", function (next) {
+  var user = this; // 위에 만든 userSchema 가져옴
+
+  if (user.isModified("password")) {
+    // 비밀번호 암호화 시킨다
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+      if (err) return next(err); // next() 하면 user.save로 들어감
+      bcrypt.hash(user.password, salt, function (err, hash) {
+        // hash는 암호화된 비밀번호
+        if (err) return next(err);
+        user.password = hash; // plain pw를 암호화된 pw로 교체
+        next();
+      });
+    });
+  }
+}); // user 모델에 user 정보 저장하기 전에 function 실행
 
 // 스키마를 모델로 감싸기
 const User = mongoose.model("User", userSchema); // (모델 이름, 스키마)
