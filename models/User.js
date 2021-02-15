@@ -1,6 +1,7 @@
 const mongoose = require("mongoose"); // 모듈 가져오기
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const jwt = require("jsonwebtoken");
 
 // 스키마 생성
 const userSchema = mongoose.Schema({
@@ -50,8 +51,47 @@ userSchema.pre("save", function (next) {
         next();
       });
     });
+  } else {
+    // 비밀번호 말고 다른 것 바꿀 때
+    next();
   }
 }); // user 모델에 user 정보 저장하기 전에 function 실행
+
+// 비밀번호 맞는지 확인하는 메소드
+userSchema.methods.comparePassword = function (plainPassword, cb) {
+  // 암호화 한 후에 db에 있는 비밀번호와 같은지 확인
+  bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
+    if (err) return cb(err);
+    cb(null, isMatch);
+  });
+};
+
+// 토큰 만드는 메소드
+userSchema.methods.generateToken = function (cb) {
+  var user = this;
+  // jsonwebtoken 이용해서 token을 생성
+  var token = jwt.sign(user._id.toHexString(), "secretToken"); // token 생성
+  user.token = token; // userSchema의 token 필드에 넣어줌
+  user.save(function (err, user) {
+    // 저장
+    if (err) return cb(err);
+    cb(null, user);
+  });
+};
+
+userSchema.statics.findByToken = function (token, cb) {
+  var user = this;
+
+  // 토큰을 decode할 때는 verify 사용
+  jwt.verify(token, "secretToken", function (err, decoded) {
+    // decode 된 건 user id
+    // 유저 아이디 사용해서 유저 찾은 후 client에서 가져온 토큰과 DB에 보관된 토큰이 일치하는지 확인
+    user.findOne({ _id: decoded, token: token }, function (err, user) {
+      if (err) return cb(err);
+      cb(null, user); // 에러 없다면 user 정보 전달
+    });
+  });
+};
 
 // 스키마를 모델로 감싸기
 const User = mongoose.model("User", userSchema); // (모델 이름, 스키마)
