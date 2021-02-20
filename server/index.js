@@ -23,9 +23,9 @@ mongoose
   .then(() => console.log("MongoDB Connected..."))
   .catch((err) => console.log(err));
 
-app.get("/", (req, res) => {
-  res.send("Hello World!!!!");
-}); // 루트 디렉토리에 Hello world 출력되게 해주는 것
+app.get("/", (req, res) => res.send("Hello World!!!!")); // 루트 디렉토리에 Hello world 출력되게 해주는 것
+
+app.get("/api/hello", (req, res) => res.send("Hello world ~"));
 
 // 회원 가입 위한 route
 // 이름, 이메일, pw 등의 회원가입 정보들을 client에서 가져오면 database에 넣어준다
@@ -37,7 +37,7 @@ app.post("/api/users/register", (req, res) => {
   }); // mongoDB에서 오는 메소드. 정보들이 User 모델에 저장
 });
 
-app.post("api/users/login", (req, res) => {
+app.post("/api/users/login", (req, res) => {
   // 요청된 이메일이 데이터베이스에 있는지 찾기
   User.findOne({ email: req.body.email }, (err, user) => {
     // user collection 안에 이메일 가진 유저 없다면
