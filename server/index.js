@@ -25,7 +25,7 @@ mongoose
 
 app.get("/", (req, res) => res.send("Hello World!!!!")); // 루트 디렉토리에 Hello world 출력되게 해주는 것
 
-app.get("/api/hello", (req, res) => res.send("Hello world ~"));
+app.get("/api/hello", (req, res) => res.send("Hello World!~~ "));
 
 // 회원 가입 위한 route
 // 이름, 이메일, pw 등의 회원가입 정보들을 client에서 가져오면 database에 넣어준다
